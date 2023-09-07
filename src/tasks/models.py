@@ -2,7 +2,7 @@ import uuid
 from sqlalchemy import Boolean, String, ForeignKey
 from sqlalchemy.types import Uuid, LargeBinary
 from sqlalchemy.orm import mapped_column, Mapped
-from src.database import Base
+from database import Base
 
 
 class Task(Base):
