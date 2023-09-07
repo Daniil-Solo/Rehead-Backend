@@ -63,3 +63,11 @@ uvicorn==0.23.2
 vine==5.0.0
 wcwidth==0.2.6
 wrapt==1.15.0
+torch==2.0.1
+torchvision==0.15.2
+transformers==4.33.1
+diffusers==0.20.2
+rembg==2.0.50
+accelerate==0.22.0
+numpy==1.23.5
+pillow==9.4.0
