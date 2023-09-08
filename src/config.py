@@ -13,3 +13,5 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 
 REDIS_URL = os.environ.get("REDIS_URL")
 FRONTEND_HOST = os.environ.get("FRONTEND_HOST")
+
+NLP_MODEL_PATH = os.environ.get("NLP_MODEL_PATH")

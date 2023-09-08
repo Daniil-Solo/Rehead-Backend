@@ -38,7 +38,7 @@ passlib==1.7.4
 platformdirs==3.10.0
 prometheus-client==0.17.1
 prompt-toolkit==3.0.39
-psycopg2==2.9.7
+psycopg2-binary==2.9.7
 pycodestyle==2.11.0
 pycparser==2.21
 pydantic==2.3.0
