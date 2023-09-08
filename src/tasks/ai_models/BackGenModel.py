@@ -44,10 +44,15 @@ class MaskRCNNInference:
 
 class BackGenModel:
     def __init__(self):
-        self.pipe = StableDiffusionInpaintPipeline.from_pretrained("runwayml/stable-diffusion-inpainting", torch_dtype=torch.float16)
+        self.pipe = None
 
     def infer(self, img):
-
+        torch_dtype = torch.float16 if torch.cuda.is_available() else torch.float32
+        self.pipe = StableDiffusionInpaintPipeline.from_pretrained(
+            "runwayml/stable-diffusion-inpainting",
+            torch_dtype=torch_dtype
+        )
+        device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         # List of Prompts
         prompts = [
             "vintage, oil painting, impressionism, artgallery.com, 3000x2000 pixels, serene landscape, pastel colors, soft lighting",
@@ -135,7 +140,6 @@ class BackGenModel:
             "cropped, low quality, random doodles, no attribution, no portfolio, small dimensions, muddy colors, uneven lighting, no people"
         ]
 
-        device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         self.pipe.to(device)
 
         init_image = PIL.Image.open(io.BytesIO(img))
