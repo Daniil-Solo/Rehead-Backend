@@ -1,15 +1,13 @@
 from uvicorn import run
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from auth.models import User
-from auth.router import auth_router, register_router, current_active_user
+from auth.router import auth_router, register_router
+from config import ALLOWED_HOSTS
 from tasks.router import task_router
 
 app = FastAPI()
 
-origins = [
-    "http://localhost:3000",
-]
+origins = ALLOWED_HOSTS
 
 app.add_middleware(
     CORSMiddleware,

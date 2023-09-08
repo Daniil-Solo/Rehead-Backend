@@ -15,3 +15,4 @@ REDIS_URL = os.environ.get("REDIS_URL")
 FRONTEND_HOST = os.environ.get("FRONTEND_HOST")
 
 NLP_MODEL_PATH = os.environ.get("NLP_MODEL_PATH")
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", '').split(' ')
