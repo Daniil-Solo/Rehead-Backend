@@ -1,14 +1,8 @@
-import base64
-import random
-import uuid
-from typing import Annotated
-
 from fastapi import APIRouter, Query, UploadFile, File, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from celery.result import AsyncResult
 from tasks.dependencies import get_task
-from tasks.celery_tasks import generate_content_task
+from tasks.celery_tasks import generate_content_task, celery
 from tasks.schemas import CreateTask, TaskStatus, TaskResult
 from tasks.models import Task, TaskGeneratedText, TaskGeneratedImage
 from database import get_async_session
@@ -34,7 +28,7 @@ async def generate_content(new_task: CreateTask = Depends(get_task), file: Uploa
 
 @task_router.get("/check_status", response_model=TaskStatus)
 async def check_status(task_id: str = Query()):
-    result = AsyncResult(task_id)
+    result = celery.AsyncResult(task_id)
     return TaskStatus(task_id=task_id, status=result.status)
 
 
