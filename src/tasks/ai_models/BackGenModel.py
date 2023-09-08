@@ -14,13 +14,8 @@ from rembg import remove
 def remove_background(img):
 
     # Выполняем удаление фона
-    input_image = PIL.Image.open(img)
-    output_image = remove(input_image)
-    image_bytes = io.BytesIO()
-    output_image.save(image_bytes, format='PNG')
-    output_image_binary = image_bytes.getvalue()
-
-    return output_image_binary
+    output_image = remove(img)
+    return output_image
 
 
 class MaskRCNNInference:
