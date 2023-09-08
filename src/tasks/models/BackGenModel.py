@@ -14,13 +14,8 @@ from rembg import remove
 def remove_background(img):
 
     # Выполняем удаление фона
-    input_image = PIL.Image.open(img)
-    output_image = remove(input_image)
-    image_bytes = io.BytesIO()
-    output_image.save(image_bytes, format='PNG')
-    output_image_binary = image_bytes.getvalue()
-
-    return output_image_binary
+    output_image = remove(img)
+    return output_image
 
 
 class MaskRCNNInference:
@@ -30,7 +25,7 @@ class MaskRCNNInference:
         self.transform = T.Compose([T.ToTensor()])
 
     def mask(self, image_path):
-        image = PIL.Image.open(image_path).convert("RGB")
+        image = PIL.Image.open(io.BytesIO(image_path)).convert("RGB")
         image_tensor = self.transform(image).unsqueeze(0)
 
         with torch.no_grad():
@@ -143,10 +138,10 @@ class BackGenModel:
         device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         self.pipe.to(device)
 
-        init_image = PIL.Image.open(img)#.resize((512, 512))
+        init_image = PIL.Image.open(io.BytesIO(img))
         #получаем маску изображения
         maskrcnn_model = MaskRCNNInference()
-        mask_image = maskrcnn_model.mask(img)#.resize((512, 512))
+        mask_image = maskrcnn_model.mask(img)
 
         #определяем целевые промпты
         prompt_preds = random.sample(prompts, 5)
