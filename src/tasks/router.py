@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from tasks.dependencies import get_task
 from tasks.celery_tasks import generate_content_task, celery
-from tasks.schemas import CreateTask, TaskStatus, TaskResult
+from tasks.schemas import CreateTask, TaskStatus, TaskResult, TaskInfo
 from tasks.models import Task, TaskGeneratedText, TaskGeneratedImage
 from database import get_async_session
 from tasks.utils import from_bytes_to_base64
@@ -11,7 +11,7 @@ from tasks.utils import from_bytes_to_base64
 task_router = APIRouter(prefix="/tasks")
 
 
-@task_router.post("/generate_content", response_model=TaskStatus)
+@task_router.post("/generate_content", response_model=TaskInfo)
 async def generate_content(new_task: CreateTask = Depends(get_task), file: UploadFile = File(...),
                            session: AsyncSession = Depends(get_async_session)):
     task = Task(
@@ -23,13 +23,13 @@ async def generate_content(new_task: CreateTask = Depends(get_task), file: Uploa
     await session.commit()
     await session.refresh(task)
     celery_task = generate_content_task.delay(task.id)
-    return TaskStatus(task_id=celery_task.id)
+    return TaskInfo(celery_task_id=celery_task.id, db_task_id=task.id)
 
 
 @task_router.get("/check_status", response_model=TaskStatus)
 async def check_status(task_id: str = Query()):
     result = celery.AsyncResult(task_id)
-    return TaskStatus(task_id=task_id, status=result.status)
+    return TaskStatus(status=result.status)
 
 
 @task_router.get("/get_result", response_model=TaskResult)

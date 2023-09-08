@@ -2,8 +2,12 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 
+class TaskInfo(BaseModel):
+    celery_task_id: UUID
+    db_task_id: UUID
+
+
 class TaskStatus(BaseModel):
-    task_id: UUID
     status: str = "PENDING"
 
 
