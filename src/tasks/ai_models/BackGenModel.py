@@ -143,6 +143,11 @@ class BackGenModel:
         self.pipe.to(device)
 
         init_image = PIL.Image.open(io.BytesIO(img))
+
+        # вычисляем соотношение сторон картинки, чтобы восстановить его после генерации
+        width, height = init_image.size
+        ratio = im_height / im_width
+
         #получаем маску изображения
         maskrcnn_model = MaskRCNNInference()
         mask_image = maskrcnn_model.mask(img)
@@ -155,7 +160,7 @@ class BackGenModel:
 
         for prompt, neg_prompt in zip(prompt_preds, neg_prompt_preds):
 
-          image_gen = self.pipe(prompt=prompt, negative_prompt=neg_prompt, image=init_image, mask_image=mask_image).images[0].resize((512,683))
+          image_gen = self.pipe(prompt=prompt, negative_prompt=neg_prompt, image=init_image, mask_image=mask_image).images[0].resize((512, int(512 * ratio)))
 
           # Конвертируем изображение в бинарное представление
           image_bytes = io.BytesIO()
