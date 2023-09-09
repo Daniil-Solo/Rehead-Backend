@@ -39,7 +39,7 @@ async def get_result(result_task_id: str = Query(), session: AsyncSession = Depe
     generated_text: TaskGeneratedText = result.scalar()
     query2 = select(TaskGeneratedImage).where(TaskGeneratedImage.task_id == result_task_id)
     result2 = await session.execute(query2)
-    generated_images = result2.all()
+    generated_images = result2.scalars().all()
     image_strings = [
         from_bytes_to_base64(generated_image.image, generated_image.filename) for generated_image in generated_images
     ]
