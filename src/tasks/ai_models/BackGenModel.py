@@ -146,7 +146,7 @@ class BackGenModel:
 
         # вычисляем соотношение сторон картинки, чтобы восстановить его после генерации
         width, height = init_image.size
-        ratio = im_height / im_width
+        ratio = height / width
 
         #получаем маску изображения
         maskrcnn_model = MaskRCNNInference()
