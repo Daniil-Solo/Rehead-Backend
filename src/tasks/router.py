@@ -2,8 +2,8 @@ from fastapi import APIRouter, Query, UploadFile, File, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from tasks.dependencies import get_task
-from tasks.celery_tasks import generate_content_task, celery
-from tasks.schemas import CreateTask, TaskStatus, TaskResult, TaskInfo
+from tasks.celery_tasks import celery, generate_product_description, generate_product_images
+from tasks.schemas import CreateTask, TaskStatus, TaskInfo, TaskDescriptionResult, TaskImagesResult
 from tasks.models import Task, TaskGeneratedText, TaskGeneratedImage
 from database import get_async_session
 from tasks.utils import from_bytes_to_base64
@@ -22,8 +22,13 @@ async def generate_content(new_task: CreateTask = Depends(get_task), file: Uploa
     session.add(task)
     await session.commit()
     await session.refresh(task)
-    celery_task = generate_content_task.delay(task.id)
-    return TaskInfo(celery_task_id=celery_task.id, db_task_id=task.id)
+    celery_image_task = generate_product_images.delay(task.id)
+    celery_description_task = generate_product_description.delay(task.id)
+    return TaskInfo(
+        celery_image_task_id=celery_image_task.id,
+        celery_description_task_id=celery_description_task.id,
+        db_task_id=task.id
+    )
 
 
 @task_router.get("/check_status", response_model=TaskStatus)
@@ -32,15 +37,20 @@ async def check_status(task_id: str = Query()):
     return TaskStatus(status=result.status)
 
 
-@task_router.get("/get_result", response_model=TaskResult)
-async def get_result(result_task_id: str = Query(), session: AsyncSession = Depends(get_async_session)):
+@task_router.get("/get_description_result", response_model=TaskDescriptionResult)
+async def get_description_result(result_task_id: str = Query(), session: AsyncSession = Depends(get_async_session)):
     query = select(TaskGeneratedText).where(TaskGeneratedText.task_id == result_task_id)
     result = await session.execute(query)
     generated_text: TaskGeneratedText = result.scalar()
-    query2 = select(TaskGeneratedImage).where(TaskGeneratedImage.task_id == result_task_id)
-    result2 = await session.execute(query2)
-    generated_images = result2.scalars().all()
+    return TaskDescriptionResult(text=generated_text.text)
+
+
+@task_router.get("/get_images_result", response_model=TaskImagesResult)
+async def get_images_result(result_task_id: str = Query(), session: AsyncSession = Depends(get_async_session)):
+    query = select(TaskGeneratedImage).where(TaskGeneratedImage.task_id == result_task_id)
+    result = await session.execute(query)
+    generated_images = result.scalars().all()
     image_strings = [
         from_bytes_to_base64(generated_image.image, generated_image.filename) for generated_image in generated_images
     ]
-    return TaskResult(text=generated_text.text, images=image_strings)
+    return TaskImagesResult(images=image_strings)
