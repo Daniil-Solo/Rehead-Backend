@@ -12,12 +12,23 @@ celery = Celery("tasks", broker=REDIS_URL, backend='redis')
 
 
 @celery.task
-def generate_content_task(task_id: uuid.UUID):
+def generate_product_description(task_id: uuid.UUID):
     session = Session()
     query = select(Task).where(Task.id == task_id)
     task: Task = session.execute(query).scalar()
     generated_text = DescGenModel(NLP_MODEL_PATH).infer(task.text)
     task_generated_text = TaskGeneratedText(task_id=task_id, text=generated_text)
+    session.add(task_generated_text)
+    session.commit()
+    session.close()
+    return task_id
+
+
+@celery.task
+def generate_product_images(task_id: uuid.UUID):
+    session = Session()
+    query = select(Task).where(Task.id == task_id)
+    task: Task = session.execute(query).scalar()
     task_generated_images = [TaskGeneratedImage(image=task.image, filename=task.filename, task_id=task_id)]
     if task.remove_background:
         tgi = TaskGeneratedImage(image=remove_background(task.image), filename="image.png", task_id=task_id)
@@ -27,7 +38,6 @@ def generate_content_task(task_id: uuid.UUID):
             tgi = TaskGeneratedImage(image=image_bytes, filename="image.png", task_id=task_id)
             task_generated_images.append(tgi)
     session.add_all(task_generated_images)
-    session.add(task_generated_text)
     session.commit()
     session.close()
     return task_id
